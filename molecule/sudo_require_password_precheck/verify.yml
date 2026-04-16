@@ -1,0 +1,32 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+  tasks:
+    - name: Check for pre-check marker file
+      ansible.builtin.stat:
+        path: /tmp/precheck_correctly_failed
+      register: precheck_marker
+
+    - name: Assert pre-check correctly aborted the role
+      ansible.builtin.assert:
+        that:
+          - precheck_marker.stat.exists
+        fail_msg: >-
+          Expected the role to fail the pre-check when a sudo user has no
+          password, but the role did not fail.
+
+    - name: Check that nopasswduser was NOT created
+      ansible.builtin.getent:
+        database: passwd
+        key: nopasswduser
+        fail_key: false
+      register: nopasswduser_info
+
+    - name: Assert nopasswduser was not created (pre-check aborted before any modifications)
+      ansible.builtin.assert:
+        that:
+          - "not nopasswduser_info.ansible_facts.getent_passwd.get('nopasswduser')"
+        fail_msg: >-
+          nopasswduser was created on the system, which means the pre-check
+          did not abort before modifications were made.

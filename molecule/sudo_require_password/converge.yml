@@ -1,0 +1,29 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+
+  vars:
+    users_sudo_require_password: true
+
+    users_users:
+      - username: johndoe
+        name: John Doe
+        disabled: false
+        sudo: true
+        password: '$y$j9T$fQOq4bY89nd8Ea6WrS3Rj.$u3PkxuJEcGk0rDiVbQ3EwnK8SIH5tcfFyXpCF5dAjX4'
+        ssh_pubkeys: |
+          ssh-ed25519 testkey johndoe@example.com
+      - username: janedoe
+        name: Jane Doe
+        disabled: false
+        sudo: false
+        password: '$y$j9T$fQOq4bY89nd8Ea6WrS3Rj.$u3PkxuJEcGk0rDiVbQ3EwnK8SIH5tcfFyXpCF5dAjX4'
+        shell: '/bin/ash'
+        ssh_pubkeys:
+
+    users_deleted_users: []
+    users_groups: []
+
+  roles:
+    - role: eirikns.users

@@ -1,0 +1,30 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  tasks:
+    - name: Attempt role run with sudo user missing a password (expected to fail)
+      block:
+        - name: Include role
+          ansible.builtin.include_role:
+            name: eirikns.users
+          vars:
+            users_sudo_require_password: true
+            users_users:
+              - username: nopasswduser
+                name: No Password User
+                sudo: true
+                # intentionally no password — pre-check should abort here
+            users_deleted_users: []
+            users_groups: []
+
+        - name: This task should not be reached
+          ansible.builtin.fail:
+            msg: "Role should have failed the pre-check but did not"
+
+      rescue:
+        - name: Record that the role correctly failed the pre-check
+          ansible.builtin.copy:
+            content: "precheck_failed"
+            dest: /tmp/precheck_correctly_failed
+            mode: "0644"

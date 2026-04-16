@@ -1,0 +1,38 @@
+---
+# Default shell for users. Can be overriden on a per-user basis.
+users_default_shell: "/bin/sh"
+
+# Attempt to delete home directory and other files for users with state=absent.
+users_remove_files: true
+
+# When true, sudo rules will require users to enter their password.
+# Users with sudo: true must have a password set when this is enabled.
+users_sudo_require_password: false
+
+# List of users to create or manage.
+users_users: []
+#   - username: testuser
+#     name: John Doe
+#     state: present        # Optional. Set to absent to remove the user. Defaults to present.
+#     password: '$y$j9$...' # Optional. Hashed password.
+#     disabled: false       # Optional. If true, removes SSH authorized keys.
+#     sudo: true            # Optional. Grants sudo privileges via /etc/sudoers.d/02-ansible-users.
+#     uid: 1001             # Optional.
+#     group: testgroup      # Optional. Primary group.
+#     groups:               # Optional. Secondary groups to add. Existing group memberships not listed here are preserved.
+#       - adm
+#       - docker
+#       - sudo
+#     home: /home/testuser  # Optional. Defaults to /home/<username>.
+#     shell: /bin/bash      # Optional. Defaults to users_default_shell.
+#     system: false         # Optional. Defaults to false.
+#     ssh_pubkeys: |        # Optional. SSH public keys for the user.
+#       ssh-ed25519 somepublickey johndoe@example.com
+#   - username: removeduser
+#     state: absent
+
+# List of groups to create or manage.
+users_groups: []
+#   - groupname: testgroup
+#     state: present
+#     gid: 1001 # Optional

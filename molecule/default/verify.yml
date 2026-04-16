@@ -1,0 +1,153 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+  tasks:
+    - name: Get developers group info
+      ansible.builtin.getent:
+        database: group
+        key: developers
+      register: developers_group
+
+    - name: Assert developers group exists
+      ansible.builtin.assert:
+        that:
+          - "'developers' in developers_group.ansible_facts.getent_group"
+
+    - name: Get obsolete_group info
+      ansible.builtin.getent:
+        database: group
+        key: obsolete_group
+        fail_key: false
+      register: obsolete_group
+
+    - name: Assert obsolete_group does not exist
+      ansible.builtin.assert:
+        that:
+          - "not obsolete_group.ansible_facts.getent_group.get('obsolete_group')"
+
+    - name: Get johndoe user info
+      ansible.builtin.getent:
+        database: passwd
+        key: johndoe
+      register: johndoe_user
+
+    - name: Assert johndoe user exists
+      ansible.builtin.assert:
+        that:
+          - "'johndoe' in johndoe_user.ansible_facts.getent_passwd"
+
+    - name: Check johndoe home directory
+      ansible.builtin.stat:
+        path: /home/johndoe
+      register: johndoe_home
+
+    - name: Assert johndoe home directory has secure permissions
+      ansible.builtin.assert:
+        that:
+          - "johndoe_home.stat.exists"
+          - "johndoe_home.stat.mode == '0750'"
+
+    - name: Check johndoe sudo file
+      ansible.builtin.stat:
+        path: /etc/sudoers.d/02-ansible-users
+      register: sudo_file
+
+    - name: Assert sudo file exists with secure permissions
+      ansible.builtin.assert:
+        that:
+          - "sudo_file.stat.exists"
+          - "sudo_file.stat.mode == '0440'"
+
+    - name: Read sudoers file content
+      ansible.builtin.slurp:
+        src: /etc/sudoers.d/02-ansible-users
+      register: sudoers_content
+
+    - name: Assert johndoe is in sudoers
+      ansible.builtin.assert:
+        that:
+          - "'johndoe ALL=(ALL) NOPASSWD: ALL' in sudoers_content.content | b64decode"
+
+    - name: Assert janedoe is not in sudoers
+      ansible.builtin.assert:
+        that:
+          - "'janedoe' not in sudoers_content.content | b64decode"
+
+    - name: Check johndoe .ssh directory
+      ansible.builtin.stat:
+        path: /home/johndoe/.ssh
+      register: johndoe_ssh_dir
+
+    - name: Assert johndoe .ssh directory has secure permissions
+      ansible.builtin.assert:
+        that:
+          - "johndoe_ssh_dir.stat.exists"
+          - "johndoe_ssh_dir.stat.mode == '0700'"
+
+    - name: Check johndoe ssh authorized_keys
+      ansible.builtin.stat:
+        path: /home/johndoe/.ssh/authorized_keys
+      register: johndoe_ssh
+
+    - name: Assert johndoe ssh keys exists with secure permissions
+      ansible.builtin.assert:
+        that:
+          - "johndoe_ssh.stat.exists"
+          - "johndoe_ssh.stat.mode == '0600'"
+
+    - name: Get system_bot user info
+      ansible.builtin.getent:
+        database: passwd
+        key: system_bot
+      register: system_bot_user
+
+    - name: Assert system_bot user exists with correct shell
+      ansible.builtin.assert:
+        that:
+          - "'system_bot' in system_bot_user.ansible_facts.getent_passwd"
+          - "'/bin/false' in system_bot_user.ansible_facts.getent_passwd['system_bot']"
+
+    - name: Get fired_employee user info
+      ansible.builtin.getent:
+        database: passwd
+        key: fired_employee
+        fail_key: false
+      register: fired_employee
+
+    - name: Assert fired_employee does not exist
+      ansible.builtin.assert:
+        that:
+          - "not fired_employee.ansible_facts.getent_passwd.get('fired_employee')"
+
+    - name: Check fired_employee home directory
+      ansible.builtin.stat:
+        path: /home/fired_employee
+      register: fired_employee_home
+
+    - name: Assert fired_employee home directory is deleted
+      ansible.builtin.assert:
+        that:
+          - not fired_employee_home.stat.exists
+
+    - name: Check fired_employee mail spool
+      ansible.builtin.stat:
+        path: /var/mail/fired_employee
+      register: fired_employee_mail
+
+    - name: Assert fired_employee mail spool is deleted
+      ansible.builtin.assert:
+        that:
+          - not fired_employee_mail.stat.exists
+
+    - name: Get external_group membership
+      ansible.builtin.getent:
+        database: group
+        key: external_group
+      register: external_group_info
+
+    - name: Assert johndoe is still a member of external_group (group membership set by another role is preserved)
+      ansible.builtin.assert:
+        that:
+          # getent_group values are [password, gid, comma_separated_members]
+          - "'johndoe' in external_group_info.ansible_facts.getent_group['external_group'][2].split(',')"

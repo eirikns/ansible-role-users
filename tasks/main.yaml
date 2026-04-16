@@ -1,0 +1,75 @@
+---
+- name: Validate sudo users have a password when users_sudo_require_password is enabled
+  ansible.builtin.assert:
+    that:
+      - item.password is defined
+      - item.password | length > 0
+      - item.password != '!'
+    fail_msg: >-
+      User {{ item.username }} has sudo enabled but no password set.
+      A password is required when users_sudo_require_password is true.
+  when:
+    - users_sudo_require_password
+    - item.sudo | default(false)
+    - not (item.disabled | default(false))
+    - item.state | default('present') != 'absent'
+  with_items: "{{ users_users }}"
+
+- name: Manage groups
+  ansible.builtin.group:
+    gid: "{{ item.gid | default(omit) }}"
+    name: "{{ item.groupname }}"
+    state: "{{ item.state }}"
+  with_items: "{{ users_groups }}"
+
+- name: Delete users
+  ansible.builtin.user:
+    name: "{{ item.username }}"
+    state: absent
+    remove: "{{ users_remove_files }}"
+  when: item.state | default('present') == 'absent'
+  with_items: "{{ users_users }}"
+
+- name: Manage users
+  ansible.builtin.user:
+    name: "{{ item.username }}"
+    state: present
+    password: "{{ item.password | default('!') }}"
+    comment: "{{ item.name | default(omit) }}"
+    uid: "{{ item.uid | default(omit) }}"
+    group: "{{ item.group | default(omit) }}"
+    groups: "{{ item.groups | default(omit) }}"
+    append: "{{ item.groups is defined }}"
+    shell: "{{ item.shell | default(users_default_shell) }}"
+    system: "{{ item.system | default(False) }}"
+  when: item.state | default('present') != 'absent'
+  with_items: "{{ users_users }}"
+
+- name: Set secure permissions on user home directories
+  ansible.builtin.file:
+    path: "{{ item.home | default('/home/' + item.username) }}"
+    mode: "u=rwx,g=rx,o="
+    owner: "{{ item.username }}"
+    state: directory
+  when:
+    - item.state | default('present') != 'absent'
+    - not (item.system | default(False))
+  with_items: "{{ users_users }}"
+
+- name: Manage ssh authorized keys for each user
+  ansible.posix.authorized_key:
+    user: "{{ item.username }}"
+    state: "{{ (item.disabled | default(False) == False) | ternary('present', 'absent') }}"
+    key: "{{ item.ssh_pubkeys | default(None) }}"
+    exclusive: true
+  when: item.state | default('present') != 'absent'
+  with_items: "{{ users_users }}"
+
+- name: Manage /etc/sudoers.d/02-ansible-users file
+  ansible.builtin.template:
+    src: sudo-users.j2
+    dest: /etc/sudoers.d/02-ansible-users
+    owner: root
+    group: root
+    mode: "u=r,g=r,o="
+    validate: visudo -cf %s

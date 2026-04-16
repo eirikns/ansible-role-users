@@ -1,0 +1,29 @@
+---
+- name: Prepare
+  hosts: all
+  become: true
+  tasks:
+    - name: Create user to be deleted (fired_employee)
+      ansible.builtin.user:
+        name: fired_employee
+        state: present
+        create_home: true
+
+    - name: Create mail spool file for fired_employee
+      ansible.builtin.copy:
+        content: ''
+        dest: /var/mail/fired_employee
+        owner: fired_employee
+        mode: "0660"
+
+    - name: Create external group (simulates a group managed by another role)
+      ansible.builtin.group:
+        name: external_group
+        state: present
+
+    - name: Pre-create johndoe and add to external group (simulates another role managing group membership)
+      ansible.builtin.user:
+        name: johndoe
+        state: present
+        groups:
+          - external_group

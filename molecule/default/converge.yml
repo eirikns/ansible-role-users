@@ -1,0 +1,39 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+
+  vars:
+    users_groups:
+      - groupname: developers
+        state: present
+      - groupname: obsolete_group
+        state: absent
+
+    users_users:
+      - username: johndoe
+        name: John Doe
+        disabled: false
+        sudo: true
+        groups:
+          - adm
+          - developers
+        ssh_pubkeys: |
+          ssh-ed25519 testkey johndoe@example.com
+      - username: janedoe
+        name: Jane Doe
+        disabled: false
+        sudo: false
+        groups: []
+        password: '$y$j9T$fQOq4bY89nd8Ea6WrS3Rj.$u3PkxuJEcGk0rDiVbQ3EwnK8SIH5tcfFyXpCF5dAjX4'
+        shell: '/bin/ash'
+        ssh_pubkeys:
+      - username: system_bot
+        name: Bot User
+        system: true
+        shell: /bin/false
+      - username: fired_employee
+        state: absent
+
+  roles:
+    - role: eirikns.users

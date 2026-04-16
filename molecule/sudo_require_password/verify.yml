@@ -1,0 +1,20 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+  tasks:
+    - name: Check sudoers file content
+      ansible.builtin.slurp:
+        src: /etc/sudoers.d/02-ansible-users
+      register: sudoers_content
+
+    - name: Assert johndoe requires password for sudo (no NOPASSWD)
+      ansible.builtin.assert:
+        that:
+          - "'johndoe ALL=(ALL) ALL' in sudoers_content.content | b64decode"
+          - "'NOPASSWD' not in sudoers_content.content | b64decode"
+
+    - name: Assert janedoe is not in sudoers
+      ansible.builtin.assert:
+        that:
+          - "'janedoe' not in sudoers_content.content | b64decode"
