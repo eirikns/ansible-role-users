@@ -15,6 +15,15 @@
     - item.state | default('present') != 'absent'
   with_items: "{{ users_users }}"
 
+- name: Manage /etc/sudoers.d/02-ansible-users file
+  ansible.builtin.template:
+    src: sudo-users.j2
+    dest: /etc/sudoers.d/02-ansible-users
+    owner: root
+    group: root
+    mode: "u=r,g=r,o="
+    validate: visudo -cf %s
+
 - name: Manage groups
   ansible.builtin.group:
     gid: "{{ item.gid | default(omit) }}"
@@ -64,12 +73,3 @@
     exclusive: true
   when: item.state | default('present') != 'absent'
   with_items: "{{ users_users }}"
-
-- name: Manage /etc/sudoers.d/02-ansible-users file
-  ansible.builtin.template:
-    src: sudo-users.j2
-    dest: /etc/sudoers.d/02-ansible-users
-    owner: root
-    group: root
-    mode: "u=r,g=r,o="
-    validate: visudo -cf %s
