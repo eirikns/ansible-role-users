@@ -45,6 +45,7 @@ jobs:
         distro:
           - debian13
           - ubuntu2404
+          - ubuntu2604
         scenario:
           - default
           - sudo_require_password
