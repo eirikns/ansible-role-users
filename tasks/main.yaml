@@ -48,7 +48,7 @@
     uid: "{{ item.uid | default(omit) }}"
     group: "{{ item.group | default(omit) }}"
     groups: "{{ item.groups | default(omit) }}"
-    append: "{{ item.groups is defined }}"
+    append: "{{ item.groups is defined and item.groups | length > 0 }}"
     shell: "{{ item.shell | default(users_default_shell) }}"
     system: "{{ item.system | default(False) }}"
   when: item.state | default('present') != 'absent'
