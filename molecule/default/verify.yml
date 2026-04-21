@@ -151,3 +151,13 @@
         that:
           # getent_group values are [password, gid, comma_separated_members]
           - "'johndoe' in external_group_info.ansible_facts.getent_group['external_group'][2].split(',')"
+
+    - name: Assert janedoe is still a member of external_group (empty groups list must not strip externally-managed groups)
+      ansible.builtin.assert:
+        that:
+          - "'janedoe' in external_group_info.ansible_facts.getent_group['external_group'][2].split(',')"
+
+    - name: Assert system_bot is still a member of external_group (undefined groups must not strip externally-managed groups)
+      ansible.builtin.assert:
+        that:
+          - "'system_bot' in external_group_info.ansible_facts.getent_group['external_group'][2].split(',')"

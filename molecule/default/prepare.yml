@@ -27,3 +27,17 @@
         state: present
         groups:
           - external_group
+
+    - name: Pre-create janedoe and add to external group (simulates another role managing group membership)
+      ansible.builtin.user:
+        name: janedoe
+        state: present
+        groups:
+          - external_group
+
+    - name: Pre-create system_bot and add to external group (simulates another role managing group membership)
+      ansible.builtin.user:
+        name: system_bot
+        state: present
+        groups:
+          - external_group
