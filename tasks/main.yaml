@@ -69,7 +69,10 @@
   ansible.posix.authorized_key:
     user: "{{ item.username }}"
     state: "{{ (item.disabled | default(False) == False) | ternary('present', 'absent') }}"
-    key: "{{ item.ssh_pubkeys | default(None) }}"
+    key: "{{ item.ssh_pubkeys }}"
     exclusive: true
-  when: item.state | default('present') != 'absent'
+  when:
+    - item.state | default('present') != 'absent'
+    - item.ssh_pubkeys is defined
+    - item.ssh_pubkeys is not none
   with_items: "{{ users_users }}"
