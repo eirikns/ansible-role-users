@@ -17,14 +17,10 @@ provisioner:
 
 scenario:
   test_sequence:
-    # - dependency
-    # - cleanup
     - destroy
     - syntax
     - create
     - converge
     # idempotence is not relevant for an expected-failure scenario
-    # - side_effect
     - verify
-    # - cleanup
     - destroy

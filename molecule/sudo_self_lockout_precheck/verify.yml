@@ -1,0 +1,17 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+  tasks:
+    - name: Check for pre-check marker file
+      ansible.builtin.stat:
+        path: /tmp/precheck_self_lockout_correctly_failed
+      register: precheck_marker
+
+    - name: Assert pre-check correctly aborted the role
+      ansible.builtin.assert:
+        that:
+          - precheck_marker.stat.exists
+        fail_msg: >-
+          Expected the role to fail the pre-check when the current user would
+          lose sudo privileges, but the role did not fail.

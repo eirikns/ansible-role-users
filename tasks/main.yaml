@@ -1,4 +1,24 @@
 ---
+- name: Determine user running the role
+  ansible.builtin.set_fact:
+    _users_remote_user: "{{ ansible_env.get('SUDO_USER') | default(ansible_env.USER) }}"
+
+- name: Validate that the user running the role would not lose sudo privileges
+  vars:
+    _entry: "{{ users_users | selectattr('username', 'equalto', _users_remote_user) | list }}"
+  ansible.builtin.assert:
+    that:
+      - >-
+        _entry | length == 0
+        or (
+          (_entry | first).sudo | default(false)
+          and (_entry | first).state | default('present') != 'absent'
+        )
+    fail_msg: >-
+      The user '{{ _users_remote_user }}' is running this role but would lose
+      sudo privileges. Ensure '{{ _users_remote_user }}' has sudo: true in
+      users_users and is not being removed.
+
 - name: Validate sudo users have a password when users_sudo_require_password is enabled
   ansible.builtin.assert:
     that:

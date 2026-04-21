@@ -47,6 +47,7 @@ jobs:
           - default
           - sudo_require_password
           - sudo_require_password_precheck
+          - sudo_self_lockout_precheck
 
     steps:
       - name: Check out the codebase.

@@ -1,0 +1,26 @@
+---
+- name: Converge
+  hosts: all
+  become: true
+  tasks:
+    - name: Attempt role run that would remove sudo from the current user (expected to fail)
+      block:
+        - name: Include role
+          ansible.builtin.include_role:
+            name: eirikns.users
+          vars:
+            users_users:
+              - username: root
+                sudo: false
+            users_groups: []
+
+        - name: This task should not be reached
+          ansible.builtin.fail:
+            msg: "Role should have failed the pre-check but did not"
+
+      rescue:
+        - name: Record that the role correctly failed the pre-check
+          ansible.builtin.copy:
+            content: "precheck_failed"
+            dest: /tmp/precheck_self_lockout_correctly_failed
+            mode: "0644"
