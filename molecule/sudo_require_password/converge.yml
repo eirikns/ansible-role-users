@@ -22,7 +22,6 @@
         shell: '/bin/ash'
         ssh_pubkeys:
 
-    users_deleted_users: []
     users_groups: []
 
   roles:
