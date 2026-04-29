@@ -96,6 +96,18 @@
           - "johndoe_ssh.stat.exists"
           - "johndoe_ssh.stat.mode == '0600'"
 
+    - name: Read johndoe authorized_keys content
+      ansible.builtin.slurp:
+        src: /home/johndoe/.ssh/authorized_keys
+      register: johndoe_authorized_keys_content
+
+    - name: Assert johndoe authorized_keys contains both keys and not the removed key
+      ansible.builtin.assert:
+        that:
+          - "'ssh-ed25519 testkey1 johndoe@example.com' in johndoe_authorized_keys_content.content | b64decode"
+          - "'ssh-ed25519 testkey2 johndoe@example.com' in johndoe_authorized_keys_content.content | b64decode"
+          - "'ssh-ed25519 removedkey johndoe@example.com' not in johndoe_authorized_keys_content.content | b64decode"
+
     - name: Get system_bot user info
       ansible.builtin.getent:
         database: passwd
@@ -161,3 +173,13 @@
       ansible.builtin.assert:
         that:
           - "'system_bot' in external_group_info.ansible_facts.getent_group['external_group'][2].split(',')"
+
+    - name: Read legacyuser authorized_keys content
+      ansible.builtin.slurp:
+        src: /home/legacyuser/.ssh/authorized_keys
+      register: legacyuser_authorized_keys_content
+
+    - name: Assert legacyuser authorized_keys contains the ssh_pubkeys fallback key
+      ansible.builtin.assert:
+        that:
+          - "'ssh-ed25519 legacykey legacyuser@example.com' in legacyuser_authorized_keys_content.content | b64decode"

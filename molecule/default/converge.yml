@@ -18,8 +18,11 @@
         groups:
           - adm
           - developers
-        ssh_pubkeys: |
-          ssh-ed25519 testkey johndoe@example.com
+        authorized_keys:
+          - key: ssh-ed25519 testkey1 johndoe@example.com
+          - key: ssh-ed25519 testkey2 johndoe@example.com
+          - key: ssh-ed25519 removedkey johndoe@example.com
+            state: absent
       - username: janedoe
         name: Jane Doe
         disabled: false
@@ -28,6 +31,10 @@
         password: '$y$j9T$fQOq4bY89nd8Ea6WrS3Rj.$u3PkxuJEcGk0rDiVbQ3EwnK8SIH5tcfFyXpCF5dAjX4'
         shell: '/bin/ash'
         ssh_pubkeys:
+      - username: legacyuser
+        name: Legacy User
+        ssh_pubkeys: |
+          ssh-ed25519 legacykey legacyuser@example.com
       - username: system_bot
         name: Bot User
         system: true

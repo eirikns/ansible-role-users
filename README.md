@@ -31,8 +31,11 @@ users_users:
     groups:               # Optional. Secondary groups to add. Existing group memberships not listed here are preserved.
       - adm
     shell: /bin/bash      # Optional. Defaults to users_default_shell.
-    ssh_pubkeys: |        # Optional. SSH public keys for the user.
-      ssh-ed25519 somepublickey johndoe@example.com
+    authorized_keys:      # Optional. SSH public keys for the user (preferred).
+      - key: ssh-ed25519 somepublickey johndoe@example.com
+      - key: ssh-ed25519 oldkey johndoe@example.com
+        state: absent     # Optional. Defaults to present.
+    # ssh_pubkeys is deprecated and will be removed in a future release. Use authorized_keys instead.
   - username: removeduser
     state: absent
 ```
@@ -78,8 +81,8 @@ Attempt to remove files belonging to the user, such as home directory and mail.
             sudo: true
             groups:
               - developers
-            ssh_pubkeys: |
-              ssh-ed25519 AAAAC3NzaC1... alice@example.com
+            authorized_keys:
+              - key: ssh-ed25519 AAAAC3NzaC1... alice@example.com
           - username: former_employee
             state: absent
         users_sudo_require_password: true

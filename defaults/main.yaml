@@ -26,7 +26,11 @@ users_users: []
 #     home: /home/testuser  # Optional. Defaults to /home/<username>.
 #     shell: /bin/bash      # Optional. Defaults to users_default_shell.
 #     system: false         # Optional. Defaults to false.
-#     ssh_pubkeys: |        # Optional. SSH public keys for the user.
+#     authorized_keys:      # Optional. SSH public keys for the user (preferred).
+#       - key: ssh-ed25519 somepublickey johndoe@example.com
+#       - key: ssh-ed25519 oldkey johndoe@example.com
+#         state: absent     # Optional. Defaults to present.
+#     ssh_pubkeys: |        # Deprecated. Use authorized_keys instead. Will be removed in a future release.
 #       ssh-ed25519 somepublickey johndoe@example.com
 #   - username: removeduser
 #     state: absent

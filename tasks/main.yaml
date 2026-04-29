@@ -85,7 +85,24 @@
     - not (item.system | default(False))
   with_items: "{{ users_users }}"
 
-- name: Manage ssh authorized keys for each user
+- name: Manage ssh authorized keys for each user (authorized_keys list)
+  ansible.posix.authorized_key:
+    user: "{{ item.0.username }}"
+    state: "{{ 'absent' if (item.0.disabled | default(false)) else (item.1.state | default('present')) }}"
+    key: "{{ item.1.key }}"
+  loop: >-
+    {{
+      users_users
+      | selectattr('authorized_keys', 'defined')
+      | selectattr('authorized_keys', 'ne', none)
+      | list
+      | subelements('authorized_keys')
+    }}
+  loop_control:
+    label: "{{ item.0.username }}"
+  when: item.0.state | default('present') != 'absent'
+
+- name: Manage ssh authorized keys for each user (ssh_pubkeys fallback)
   ansible.posix.authorized_key:
     user: "{{ item.username }}"
     state: "{{ (item.disabled | default(False) == False) | ternary('present', 'absent') }}"
@@ -93,6 +110,7 @@
     exclusive: true
   when:
     - item.state | default('present') != 'absent'
+    - item.authorized_keys is not defined
     - item.ssh_pubkeys is defined
     - item.ssh_pubkeys is not none
   with_items: "{{ users_users }}"
